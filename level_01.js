@@ -176,16 +176,16 @@ function initLevel01(gl) {
     // Space
     let dirX = 0.0;
     let dirY = 0.0;
-    if (keycodePressed.has("ArrowUp")) {
+    if (keycodePressed.has("ArrowUp") || keycodePressed.has("KeyW")) {
       dirY += 1.0;
     }
-    if (keycodePressed.has("ArrowDown")) {
+    if (keycodePressed.has("ArrowDown") || keycodePressed.has("KeyS")) {
       dirY -= 1.0;
     }
-    if (keycodePressed.has("ArrowLeft")) {
+    if (keycodePressed.has("ArrowLeft") || keycodePressed.has("KeyA")) {
       dirX -= 1.0;
     }
-    if (keycodePressed.has("ArrowRight")) {
+    if (keycodePressed.has("ArrowRight") || keycodePressed.has("KeyD")) {
       dirX += 1.0;
     }
     while (lastTimestampMs < timestampMs) {
