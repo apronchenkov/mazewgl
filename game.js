@@ -135,12 +135,12 @@ function initGame(gl) {
       const dir1X = x0 - x1;
       const dir1Y = y0 - y1;
       const dir1L = Math.hypot(dir1X, dir1Y);
-      if (dir1L < player0Radius + player1Radius) {
+      if (dir1L < (player0Radius + player1Radius) / 2.0) {
         loseCallback();
         return;
       }
       const player0Candidate = nextPlayerState(
-        timestampMs,
+        Math.min(player0.timestampMs + 4, timestampMs),
         dir0X,
         dir0Y,
         player0Speed,
