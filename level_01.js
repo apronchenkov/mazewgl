@@ -44,17 +44,14 @@ const kGameLevels = [
       m3_translation(-7, -7),
       m3_scaling(1 / 10, 1 / 10),
     ),
-    /*levelVertices=*/ Array(256)
-      .keys()
-      .map((i) => [
-        7 + 7 * Math.cos(((2 * Math.PI) / 256) * i),
-        7 + 7 * Math.sin(((2 * Math.PI) / 256) * i),
-      ])
-      .toArray(),
-    /*levelEdges=*/ Array(256)
-      .keys()
-      .map((i) => [i, (i + 1) % 256])
-      .toArray(),
+    /*levelVertices=*/ Array.from(Array(256).keys()).map((i) => [
+      7 + 7 * Math.cos(((2 * Math.PI) / 256) * i),
+      7 + 7 * Math.sin(((2 * Math.PI) / 256) * i),
+    ]),
+    /*levelEdges=*/ Array.from(Array(256).keys()).map((i) => [
+      i,
+      (i + 1) % 256,
+    ]),
     /*player0VertexIndex*/ 7,
     /*player0Speed=*/ 0.01,
     /*player0Radius=*/ 0.4,
