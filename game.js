@@ -65,6 +65,8 @@ function initGame(gl) {
   let winCallback;
   let loseCallback;
 
+  let start;
+
   initGameLevel = function (
     _projectionMatrix,
     _levelVertices,
@@ -91,6 +93,14 @@ function initGame(gl) {
     loseCallback = _loseCallback;
     updateScene = updateGameState;
     drawScene = drawGameState;
+    updateEdgeCovs(
+      level,
+      player0.vertexIndex,
+      player0.edgeIndex,
+      player0.phi,
+      player0Radius,
+    );
+    start = false;
   };
 
   function updateGameState() {
@@ -111,6 +121,13 @@ function initGame(gl) {
     if (keycodePressed.has("ArrowRight") || keycodePressed.has("KeyD")) {
       dir0X += 1.0;
     }
+
+    if (!start && dir0X == 0 && dir0Y == 0) {
+      player0 = new PlayerState(timestampMs, player0.vertexIndex);
+      player1 = new PlayerState(timestampMs, player1.vertexIndex);
+      return;
+    }
+    start = true;
 
     while (player0.timestampMs < timestampMs) {
       const [x0, y0] = getPlayerXY(player0, level);
