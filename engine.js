@@ -97,3 +97,195 @@ document.addEventListener("keyup", (event) => {
 
 var updateGameState = function () {};
 var drawGameState = function () {};
+
+/////////////////////////////////////////////
+
+class LevelState {
+  vertices;
+  edges;
+  edgeCovs;
+  edgeXYs;
+  edgeLs;
+  vertexEdges;
+
+  constructor(vertices, edges) {
+    this.vertices = vertices;
+    this.edges = edges;
+
+    this.edgeCovs = edges.map((_) => [0.0, 0.0]);
+    this.edgeXYs = edges.map(([i, j]) => [
+      vertices[i][0] + vertices[j][0],
+      vertices[i][1] + vertices[j][1],
+    ]);
+    this.edgeLs = edges.map(([i, j]) =>
+      Math.hypot(
+        vertices[i][0] - vertices[j][0],
+        vertices[i][1] - vertices[j][1],
+      ),
+    );
+    this.vertexEdges = edges.map((_) => []);
+    for (const i of edges.keys()) {
+      this.vertexEdges[edges[i][0]].push(i);
+      this.vertexEdges[edges[i][1]].push(i);
+    }
+  }
+}
+
+function updateEdgeCovs(level, vertexIndex, edgeIndex, phi, radius) {
+  if (edgeIndex < 0) {
+    for (const i of level.vertexEdges[vertexIndex]) {
+      updateEdgeCovs(level, vertexIndex, i, 0.0, radius);
+    }
+    return;
+  }
+  if (level.edges[edgeIndex][0] == vertexIndex) {
+    level.edgeCovs[edgeIndex][0] = Math.max(
+      level.edgeCovs[edgeIndex][0],
+      phi + radius / level.edgeLs[edgeIndex],
+    );
+  } else if (level.edges[edgeIndex][1] == vertexIndex) {
+    level.edgeCovs[edgeIndex][1] = Math.max(
+      level.edgeCovs[edgeIndex][1],
+      phi + radius / level.edgeLs[edgeIndex],
+    );
+  }
+  if (level.edgeCovs[edgeIndex][0] + level.edgeCovs[edgeIndex][1] >= 1.0) {
+    level.edgeCovs[edgeIndex][0] = 1.0;
+    level.edgeCovs[edgeIndex][1] = 1.0;
+  }
+}
+
+class PlayerState {
+  timestampMs;
+  vertexIndex;
+  edgeIndex;
+  phi;
+
+  constructor(timestampMs, vertexIndex, edgeIndex = -1, phi = 0.0) {
+    this.timestampMs = timestampMs;
+    this.vertexIndex = vertexIndex;
+    this.edgeIndex = edgeIndex;
+    this.phi = phi;
+  }
+}
+
+function nextPlayerState(timestampMs, dirX, dirY, playerSpeed, player, level) {
+  if (player.edgeIndex < 0) {
+    // Vertex case.
+    let bestEdgeIndex = -1;
+    let bestWeight = 0.0;
+    for (const i of level.vertexEdges[player.vertexIndex]) {
+      const edgeDirX =
+        level.edgeXYs[i][0] - 2 * level.vertices[player.vertexIndex][0];
+      const edgeDirY =
+        level.edgeXYs[i][1] - 2 * level.vertices[player.vertexIndex][1];
+      const weight = (dirX * edgeDirX + dirY * edgeDirY) / level.edgeLs[i];
+      if (bestWeight + kEps < weight) {
+        bestWeight = weight;
+        bestEdgeIndex = i;
+      } else if (bestWeight < weight + kEps) {
+        bestWeight = weight;
+        bestEdgeIndex = -1;
+      }
+    }
+    if (bestEdgeIndex < 0) {
+      return new PlayerState(timestampMs, player.vertexIndex);
+    }
+    return new PlayerState(
+      player.timestampMs,
+      player.vertexIndex,
+      bestEdgeIndex,
+    );
+  }
+  // Edge case.
+  const edgeDirX =
+    level.edgeXYs[player.edgeIndex][0] -
+    2 * level.vertices[player.vertexIndex][0];
+  const edgeDirY =
+    level.edgeXYs[player.edgeIndex][1] -
+    2 * level.vertices[player.vertexIndex][1];
+  const edgeL = level.edgeLs[player.edgeIndex];
+  const dir = dirX * edgeDirX + dirY * edgeDirY;
+  if (dir > 0.0 && player.phi < 1.0) {
+    const dT = (edgeL * (1.0 - player.phi)) / playerSpeed;
+    if (player.timestampMs + dT <= timestampMs) {
+      return new PlayerState(
+        player.timestampMs + dT,
+        player.vertexIndex,
+        player.edgeIndex,
+        1.0,
+      );
+    }
+    return new PlayerState(
+      timestampMs,
+      player.vertexIndex,
+      player.edgeIndex,
+      player.phi + ((timestampMs - player.timestampMs) * playerSpeed) / edgeL,
+    );
+  }
+  if (dir < 0.0 && player.phi > 0.0) {
+    const dT = (edgeL * player.phi) / playerSpeed;
+    if (player.timestampMs + dT <= timestampMs) {
+      return new PlayerState(
+        player.timestampMs + dT,
+        player.vertexIndex,
+        player.edgeIndex,
+        0.0,
+      );
+    }
+    return new PlayerState(
+      timestampMs,
+      player.vertexIndex,
+      player.edgeIndex,
+      player.phi - ((timestampMs - player.timestampMs) * playerSpeed) / edgeL,
+    );
+  }
+  if (player.phi == 0.0) {
+    return new PlayerState(player.timestampMs, player.vertexIndex);
+  }
+  if (player.phi == 1.0) {
+    return new PlayerState(
+      player.timestampMs,
+      player.vertexIndex ^
+        level.edges[player.edgeIndex][0] ^
+        level.edges[player.edgeIndex][1],
+    );
+  }
+  return new PlayerState(
+    timestampMs,
+    player.vertexIndex,
+    player.edgeIndex,
+    player.phi,
+  );
+}
+
+function getPlayerXY(player, level) {
+  let [x, y] = level.vertices[player.vertexIndex];
+  if (player.edgeIndex >= 0) {
+    x =
+      level.edgeXYs[player.edgeIndex][0] * player.phi +
+      x * (1 - 2 * player.phi);
+    y =
+      level.edgeXYs[player.edgeIndex][1] * player.phi +
+      y * (1 - 2 * player.phi);
+  }
+  return [x, y];
+}
+
+function getLevelLength(level) {
+  let result = 0.0;
+  for (const i of level.edges.keys()) {
+    result += level.edgeLs[i];
+  }
+  return result;
+}
+
+function getLevelCoverage(level) {
+  let result = 0.0;
+  for (const i of level.edges.keys()) {
+    result +=
+      Math.clamp(level.edgeCovs[i][0] + level.edgeCov[i][0], 0.0, 1.0) *
+      level.edgeLs[i];
+  }
+  return result;
+}
