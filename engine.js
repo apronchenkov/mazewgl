@@ -86,17 +86,17 @@ function m3_to_webgl(mat) {
 var keycodePressed = new Set();
 
 document.addEventListener("keydown", (event) => {
-  updateGameState();
+  updateScene();
   keycodePressed.add(event.code);
 });
 
 document.addEventListener("keyup", (event) => {
-  updateGameState();
+  updateScene();
   keycodePressed.delete(event.code);
 });
 
-var updateGameState = function () {};
-var drawGameState = function () {};
+var updateScene = function () {};
+var drawScene = function () {};
 
 /////////////////////////////////////////////
 

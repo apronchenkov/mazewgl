@@ -9,14 +9,15 @@ function main() {
     return;
   }
 
-  initLevel01(gl);
+  initGame(gl);
+  initLevels();
   requestAnimationFrame(onRequestAnimationFrame);
 
   // Draw the scene.
   function onRequestAnimationFrame(/*timestampMs*/) {
     resizeCanvasToDisplaySize(gl.canvas);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    drawGameState();
+    drawScene();
     requestAnimationFrame(onRequestAnimationFrame);
   }
 
