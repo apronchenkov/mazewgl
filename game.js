@@ -135,6 +135,10 @@ function initGame(gl) {
       const dir1X = x0 - x1;
       const dir1Y = y0 - y1;
       const dir1L = Math.hypot(dir1X, dir1Y);
+      if (dir1L < player0Radius + player1Radius) {
+        loseCallback();
+        return;
+      }
       const player0Candidate = nextPlayerState(
         timestampMs,
         dir0X,
@@ -166,6 +170,11 @@ function initGame(gl) {
         player0.phi,
         player0Radius,
       );
+      const levelCoverage = getLevelCoverage(level);
+      if (levelCoverage > 0.999) {
+        winCallback();
+        return;
+      }
     }
   }
 

@@ -123,7 +123,7 @@ class LevelState {
         vertices[i][1] - vertices[j][1],
       ),
     );
-    this.vertexEdges = edges.map((_) => []);
+    this.vertexEdges = vertices.map((_) => []);
     for (const i of edges.keys()) {
       this.vertexEdges[edges[i][0]].push(i);
       this.vertexEdges[edges[i][1]].push(i);
@@ -284,8 +284,8 @@ function getLevelCoverage(level) {
   let result = 0.0;
   for (const i of level.edges.keys()) {
     result +=
-      Math.clamp(level.edgeCovs[i][0] + level.edgeCov[i][0], 0.0, 1.0) *
+      Math.min(level.edgeCovs[i][0] + level.edgeCovs[i][1], 1.0) *
       level.edgeLs[i];
   }
-  return result;
+  return result / getLevelLength(level);
 }
