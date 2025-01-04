@@ -75,6 +75,18 @@ function initLevel01(gl) {
   const kPlayer0Speed = 0.01;
   const kPlayer0Radius = 0.4;
 
+  const kLevel01EdgeXYs = kLevel01Edges.map(([i, j]) => [
+    kLevel01Vertices[i][0] + kLevel01Vertices[j][0],
+    kLevel01Vertices[i][1] + kLevel01Vertices[j][1],
+  ]);
+
+  const kLevel01EdgeLengths = kLevel01Edges.map(([i, j]) =>
+    Math.hypot(
+      kLevel01Vertices[i][0] - kLevel01Vertices[j][0],
+      kLevel01Vertices[i][1] - kLevel01Vertices[j][1],
+    ),
+  );
+
   const edgeCov = [
     [0, 0],
     [0, 0],
@@ -235,7 +247,7 @@ function initLevel01(gl) {
 
   drawGameState = function () {
     updateGameState();
-    const positions = new Float32Array(kLevel01Edges.length * 6 * 4);
+    const positions = new Float32Array(kLevel01Edges.length * 6 * 4 + 6 * 4);
     const w = 0.025;
     for (const i of kLevel01Edges.keys()) {
       const [x0, y0] = kLevel01Vertices[kLevel01Edges[i][0]];
@@ -277,6 +289,47 @@ function initLevel01(gl) {
       positions[24 * i + 21] = y0 + ny * w;
       positions[24 * i + 22] = c0;
       positions[24 * i + 23] = c1 - 1.0;
+    }
+    {
+      let [x, y] = kLevel01Vertices[player0Vertex];
+      if (player0EdgeIndex >= 0) {
+        x =
+          kLevel01EdgeXYs[player0EdgeIndex][0] * player0Phi +
+          x * (1 - 2 * player0Phi);
+        y =
+          kLevel01EdgeXYs[player0EdgeIndex][1] * player0Phi +
+          y * (1 - 2 * player0Phi);
+      }
+      const i = kLevel01Edges.length;
+      positions[24 * i + 0] = x - kPlayer0Radius;
+      positions[24 * i + 1] = y - kPlayer0Radius;
+      positions[24 * i + 2] = 1.0;
+      positions[24 * i + 3] = 1.0;
+
+      positions[24 * i + 4] = x + kPlayer0Radius;
+      positions[24 * i + 5] = y - kPlayer0Radius;
+      positions[24 * i + 6] = 1.0;
+      positions[24 * i + 7] = 1.0;
+
+      positions[24 * i + 8] = x + kPlayer0Radius;
+      positions[24 * i + 9] = y + kPlayer0Radius;
+      positions[24 * i + 10] = 1.0;
+      positions[24 * i + 11] = 1.0;
+
+      positions[24 * i + 12] = x + kPlayer0Radius;
+      positions[24 * i + 13] = y + kPlayer0Radius;
+      positions[24 * i + 14] = 1.0;
+      positions[24 * i + 15] = 1.0;
+
+      positions[24 * i + 16] = x - kPlayer0Radius;
+      positions[24 * i + 17] = y + kPlayer0Radius;
+      positions[24 * i + 18] = 1.0;
+      positions[24 * i + 19] = 1.0;
+
+      positions[24 * i + 20] = x - kPlayer0Radius;
+      positions[24 * i + 21] = y - kPlayer0Radius;
+      positions[24 * i + 22] = 1.0;
+      positions[24 * i + 23] = 1.0;
     }
 
     // Clear the canvas.
