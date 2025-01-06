@@ -141,7 +141,7 @@ const kGameLevels = [
     /*player1Radius=*/ 0.3,
   ),
   new GameLevel(
-    /*name=*/ "level-xx",
+    /*name=*/ "level-03",
     /*projectionMatrix=*/ m3_multiply(
       m3_translation(-6, -6),
       m3_scaling(1 / 10, 1 / 10),
